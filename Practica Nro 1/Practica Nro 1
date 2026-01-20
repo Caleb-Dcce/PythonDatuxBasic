@@ -127,6 +127,21 @@ def agregar_producto():
     print('Producto agregado correctamente')
     iterar()
 
+def obtener_precio(p):
+    return p['precio']
+
+def producto_barato():
+    producto = min(productos, key=obtener_precio)
+    print('El producto de precio más bajo es:')
+    print(
+        f"ID: {producto['id']} | "
+        f"Nombre: {producto['nombre']} | "
+        f"Categoría: {producto['categoria']} | "
+        f"Cantidad: {producto['cantidad']} {producto['UM']} | "
+        f"Precio: S/ {producto['precio']}"
+    )
+    iterar()
+
 def iterar():
     confirmacion=input("Deseas volver al menu (si/no):")
     if 'SI'.upper() == confirmacion.upper():
@@ -143,6 +158,11 @@ def indice():
         lista_productos()
     elif opcion==3:
         agregar_producto()
+    elif opcion==4:
+        producto_barato()
+    elif opcion==5:
+        print('Gracias')
+        pass
     else:
         print("Ingrese una opcion válida")
 
