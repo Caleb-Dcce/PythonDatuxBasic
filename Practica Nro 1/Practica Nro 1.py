@@ -167,3 +167,7 @@ def indice():
         print("Ingrese una opcion válida")
 
 indice()
+
+pip install pytz
+
+pip install pyodbc
