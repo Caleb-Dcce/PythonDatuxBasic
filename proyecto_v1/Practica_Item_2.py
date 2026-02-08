@@ -12,6 +12,7 @@ import pyfiglet
 from config.config import ConfigBd
 import random
 from datetime import datetime
+from Practica_Item_3 import WelcomeCliente
 from usuarios.userservices import Login,WelcomeUser
 from sqlite3 import Connection
 import sqlite3
@@ -55,11 +56,9 @@ def getMenu(conn:Connection):
                 
                 console.print(f"\n[bold green]Login exitoso! Bienvenido {usuario}[/bold green]")
                 type_user = login['type_user']
-                print(type_user)
-                # Determinar qué menú mostrar según el tipo de usuario
-                #tipo_usuario = ['admin',"ventas"]
-                #random_element = random.choice(tipo_usuario)   
+                print(type_user)  
                 WelcomeUser(login['user'],emailService)
+
                 if type_user == "admin":
                     getMenuAdmin()
                 elif type_user == "ventas":
@@ -208,8 +207,8 @@ def registrar_cliente():
         
         query = """
         INSERT INTO clientes (
-            nombre, apellido, email, telefono, documento, tipo_doc, 
-            direccion, fecha_nacimiento, estado_civil, ingresos, 
+            nombre, apellido, email, telefono, documento, tipo_documento, 
+            direccion, fecha_nacimiento, estado_civil, ingresos_mensuales, 
             estado, fecha_registro, fecha_actualizacion
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
@@ -224,6 +223,8 @@ def registrar_cliente():
         conn.commit()
         print(f"✅ Cliente {nombre} {apellido} registrado con éxito.")
         
+        WelcomeCliente(email,nombre,apellido,emailService)
+
     except sqlite3.Error as e:
         print(f"❌ Error al registrar en la base de datos: {e}")
     finally:
