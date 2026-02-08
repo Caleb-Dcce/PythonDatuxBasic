@@ -11,8 +11,10 @@ from rich import box
 import pyfiglet
 from config.config import ConfigBd
 import random
+from datetime import datetime
 from usuarios.userservices import Login,WelcomeUser
 from sqlite3 import Connection
+import sqlite3
 from config.email import EmailService
 console = Console()
 config = ConfigBd()
@@ -131,13 +133,63 @@ def getMenuSale():
         
         opcion = Prompt.ask("Seleccione una opción", choices=["0", "1", "2", "3", "4"])
         
-        if opcion == "0":
+        if opcion == "1":
+            ver_propiedades()
+        elif opcion == "0":
             console.print("\n[yellow]Cerrando sesión...[/yellow]")
             break
         else:
             console.print(f"\n[bold blue]Función pendiente de implementar: Opción {opcion}[/bold blue]")
             console.input("Presione Enter para continuar...")
             pass
+def ver_propiedades():
+    conn = sqlite3.connect('/workspaces/PythonDatuxBasic/proyecto_v1/bd-si.db')
+    cursor = conn.cursor()
+    
+    # Seleccionamos las columnas clave que aparecen en tu imagen_889d3a.png
+    query = """
+    SELECT codigo_producto, titulo, tipo_propiedad, direccion, precio, moneda, estado 
+    FROM productos
+    """
+    
+    try:
+        cursor.execute(query)
+        propiedades = cursor.fetchall()
+        
+        if not propiedades:
+            console.print("[yellow]No hay propiedades en la base de datos.[/yellow]")
+            return
+
+        # Creamos la tabla visual con el estilo de Gianfranco
+        table = Table(title="🏢 CATÁLOGO INMOBILIARIO", header_style="bold magenta")
+        
+        table.add_column("Código", style="cyan", justify="center")
+        table.add_column("Título", style="white")
+        table.add_column("Tipo", style="green")
+        table.add_column("Distrito", style="blue")
+        table.add_column("Precio", justify="right", style="yellow")
+        table.add_column("Estado", justify="center")
+
+        for p in propiedades:
+            # Color dinámico según el estado
+            color_estado = "green" if p[6] == "disponible" else "red" if p[6] == "vendido" else "yellow"
+            
+            table.add_row(
+                p[0], # codigo_prop
+                p[1], # titulo
+                p[2], # tipo_prop
+                p[3], # distrito
+                f"{p[5]} {p[4]:,.2f}", # moneda + precio
+                f"[{color_estado}]{p[6]}[/{color_estado}]" # estado con color
+            )
+
+        console.print(table)
+        
+    except sqlite3.Error as e:
+        console.print(f"[red]Error al consultar propiedades: {e}[/red]")
+    finally:
+        conn.close()
+        input("\nPresione Enter para continuar...")
 
 if __name__ == "__main__":
     try:
