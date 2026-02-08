@@ -7,7 +7,7 @@ class ConfigBd():
         self.bd=self.createBd()
         self.populate() # seed
     def createBd(self):
-        conn = sqlite3.connect('bd-si.db')
+        conn = sqlite3.connect('/workspaces/PythonDatuxBasic/proyecto_v1/bd-si.db')
         return conn
     def discontecBd(self):
         if self.bd:
