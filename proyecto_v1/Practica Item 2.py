@@ -89,17 +89,16 @@ def getMenuAdmin():
         table.add_column("Opción", style="cyan", justify="center")
         table.add_column("Descripción", style="white")
         
-        table.add_row("1", "Gestión de Usuarios")
-        table.add_row("2", "Gestión de Propiedades")
-        table.add_row("3", "Reportes Financieros")
-        table.add_row("4", "Dashboard")
+        table.add_row("1", "Resumen de Pagos")
         table.add_row("0", "Cerrar Sesión")
         
         console.print(table)
         
-        opcion = Prompt.ask("Seleccione una opción", choices=["0", "1", "2", "3", "4"])
+        opcion = Prompt.ask("Seleccione una opción", choices=["0", "1"])
         
-        if opcion == "0":
+        if opcion == "1":
+            resumen_pagos()
+        elif opcion == "0":
             console.print("\n[yellow]Cerrando sesión...[/yellow]")
             break
         else:
@@ -125,16 +124,16 @@ def getMenuSale():
         
         table.add_row("1", "Ver Propiedades")
         table.add_row("2", "Registrar Cliente")
-        table.add_row("3", "Nueva Venta")
-        table.add_row("4", "Mis Ventas")
         table.add_row("0", "Cerrar Sesión")
         
         console.print(table)
         
-        opcion = Prompt.ask("Seleccione una opción", choices=["0", "1", "2", "3", "4"])
+        opcion = Prompt.ask("Seleccione una opción", choices=["0", "1", "2"])
         
         if opcion == "1":
             ver_propiedades()
+        elif opcion == "2":
+            registrar_cliente()
         elif opcion == "0":
             console.print("\n[yellow]Cerrando sesión...[/yellow]")
             break
@@ -142,6 +141,7 @@ def getMenuSale():
             console.print(f"\n[bold blue]Función pendiente de implementar: Opción {opcion}[/bold blue]")
             console.input("Presione Enter para continuar...")
             pass
+
 def ver_propiedades():
     conn = sqlite3.connect('/workspaces/PythonDatuxBasic/proyecto_v1/bd-si.db')
     cursor = conn.cursor()
@@ -190,6 +190,80 @@ def ver_propiedades():
     finally:
         conn.close()
         input("\nPresione Enter para continuar...")
+
+def registrar_cliente():
+    print("\n--- Registro de Nuevo Cliente ---")
+    nombre = input("Nombre: ")
+    apellido = input("Apellido: ")
+    email = input("Email: ")
+    telefono = input("Teléfono: ")
+    dni = input("Número de Documento (DNI): ")
+    tipo_doc = "DNI"
+    estado = "activo"
+    fecha_hoy = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    try:
+        conn = sqlite3.connect('/workspaces/PythonDatuxBasic/proyecto_v1/bd-si.db')
+        cursor = conn.cursor()
+        
+        query = """
+        INSERT INTO clientes (
+            nombre, apellido, email, telefono, documento, tipo_doc, 
+            direccion, fecha_nacimiento, estado_civil, ingresos, 
+            estado, fecha_registro, fecha_actualizacion
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """
+
+        datos = (
+            nombre, apellido, email, telefono, dni, tipo_doc,
+            None, None, None, None, # campos NULL en tu imagen
+            estado, fecha_hoy, fecha_hoy
+        )
+        
+        cursor.execute(query, datos)
+        conn.commit()
+        print(f"✅ Cliente {nombre} {apellido} registrado con éxito.")
+        
+    except sqlite3.Error as e:
+        print(f"❌ Error al registrar en la base de datos: {e}")
+    finally:
+        conn.close()
+
+def resumen_pagos():
+    conn = sqlite3.connect('/workspaces/PythonDatuxBasic/proyecto_v1/bd-si.db')
+    cursor = conn.cursor()
+    
+    query = """
+    SELECT metodo_pago, SUM(monto), moneda 
+    FROM pagos 
+    GROUP BY metodo_pago
+    """
+    
+    try:
+        cursor.execute(query)
+        resultados = cursor.fetchall()
+        
+        if not resultados:
+            console.print("[yellow]No hay registros de pagos para procesar.[/yellow]")
+            return
+
+        # Creación de la tabla visual para mostrar el resumen
+        table = Table(title="💰 RESUMEN DE PAGOS POR MÉTODO")
+        table.add_column("Método de Pago", style="cyan")
+        table.add_column("Cantidad Total", justify="right", style="green")
+        table.add_column("Moneda", justify="center", style="magenta")
+
+        for metodo, total, moneda in resultados:
+            # Formateamos el total con comas para miles y dos decimales
+            table.add_row(metodo.capitalize(), f"{total:,.2f}", moneda)
+
+        console.print(table)
+        
+    except sqlite3.Error as e:
+        console.print(f"[red]Error al procesar los pagos: {e}[/red]")
+    finally:
+        conn.close()
+        input("\nPresione Enter para volver al menú...")
 
 if __name__ == "__main__":
     try:
